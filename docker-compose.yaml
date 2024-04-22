@@ -1,0 +1,73 @@
+version: '3.3'
+
+services:
+  ui:
+    image: devopseasylearning/banga-ui:v0.0.1
+    ports:
+      - "3000:3000"
+    environment:
+      AUTH_HOST: auth
+      AUTH_PORT: 8080
+      WEATHER_HOST: weather
+      WEATHER_PORT: 5000
+      REDIS_USER: redis
+      REDIS_PASSWORD: redis
+    depends_on:
+      - auth
+      - weather
+      - redis
+    networks:
+      - banganet
+    restart: always
+
+  weather:
+    image: devopseasylearning/banga-weather:v0.0.1 
+    ports: 
+      - 5000
+
+    networks:
+      - banganet
+    
+    restart: always
+
+  auth:
+    image: devopseasylearning/banga-auth:v0.0.1
+    ports:
+      - 8080
+    environment:
+      DB_HOST: db
+      DB_PASSWORD: my-secret-pw
+    depends_on:
+      - weather
+    networks:
+      - banganet
+    restart: always
+
+  db:
+    image: devopseasylearning/banga-db:v0.0.1
+    environment:
+      MYSQL_ROOT_PASSWORD: my-secret-pw
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - banganet
+    restart: always
+
+  redis:
+    image: redis
+    environment:
+      REDIS_USER: redis
+      REDIS_PASSWORD: redis
+    volumes:
+      - redis-data:/data
+    networks:
+      - banganet
+    restart: always
+
+networks:
+  banganet:
+    driver: bridge
+
+volumes:
+  db-data:
+  redis-data:
